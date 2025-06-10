@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer/Footer";
 import FoodCard from "@/components/FoodCard";
 import { useToast } from "@/components/ui/use-toast";
 

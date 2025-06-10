@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { format, subMonths, isAfter } from "date-fns";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,

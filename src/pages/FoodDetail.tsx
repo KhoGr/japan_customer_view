@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Star, ShoppingCart, MessageSquare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer/Footer";
 import { FoodItem } from "@/components/FoodCard";
 
 type Review = {

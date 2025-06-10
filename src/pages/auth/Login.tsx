@@ -1,0 +1,62 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import { loginUser, getMe, logout } from "../../redux/slices/auth.slice";
+import { setMessage } from "../../redux/slices/message.slice";
+import { useNavigate } from "react-router-dom";
+import LoginForm from "../../components/auth/LoginForm";
+import { postLoginRequest } from "../../types/User";
+
+const Login = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { user, loading, error, token } = useSelector((state: RootState) => state.auth);
+
+  // ✅ Khi có token mà chưa có user, gọi getMe
+  useEffect(() => {
+    if (token && !user) {
+      dispatch(getMe());
+    }
+  }, [token, user, dispatch]);
+
+  // ✅ Khi user đã được set, xử lý điều hướng hoặc từ chối
+  useEffect(() => {
+    if (user) {
+      if (user.role === "customer") {
+        dispatch(setMessage({ type: "success", message: "Đăng nhập thành công!" }));
+        navigate("/");
+      } else {
+        dispatch(logout());
+        dispatch(setMessage({ type: "error", message: "Chỉ khách hàng mới được phép đăng nhập." }));
+      }
+    }
+  }, [user, dispatch, navigate]);
+
+  const handleLogin = async (data: postLoginRequest) => {
+    try {
+      await dispatch(loginUser(data)).unwrap();
+      // ⛔ KHÔNG navigate ở đây. Đợi getMe → user → useEffect xử lý.
+    } catch (err) {
+      dispatch(setMessage({ type: "error", message: "Đăng nhập thất bại" }));
+      console.error("Lỗi đăng nhập:", err);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center h-screen bg-[#f9f5f0] bg-[url('/japan-texture.png')]">
+      <div className="bg-white/60 backdrop-blur-md border border-red-300 shadow-lg rounded-2xl p-10 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-[#b03a2e] font-[Noto_Sans_JP]">
+          Đăng nhập khách hàng
+        </h2>
+        <LoginForm
+          onSubmit={handleLogin}
+          loading={loading}
+          error={error}
+          onForgotPasswordClick={() => navigate("/forgot-password")}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Login;

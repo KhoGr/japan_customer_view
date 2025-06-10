@@ -32,6 +32,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const savedNotifications = localStorage.getItem('notifications');
     if (savedNotifications) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parsedNotifications = JSON.parse(savedNotifications).map((notification: any) => ({
           ...notification,
           timestamp: new Date(notification.timestamp)
@@ -44,16 +45,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     // Add some mock notifications for demo purposes
     const mockNotifications = [
-      {
-        type: 'promotion' as NotificationType,
-        title: 'Khuyến mãi đặc biệt!',
-        message: 'Giảm 15% cho tất cả các món hải sản trong tuần này'
-      },
-      {
-        type: 'order' as NotificationType,
-        title: 'Đơn hàng #1234 đã được xác nhận',
-        message: 'Đơn hàng của bạn đang được chuẩn bị và sẽ được giao trong 30 phút'
-      }
+      // {
+      //   type: 'promotion' as NotificationType,
+      //   title: 'Khuyến mãi đặc biệt!',
+      //   message: 'Giảm 15% cho tất cả các món hải sản trong tuần này'
+      // },
+      // {
+      //   type: 'order' as NotificationType,
+      //   title: 'Đơn hàng #1234 đã được xác nhận',
+      //   message: 'Đơn hàng của bạn đang được chuẩn bị và sẽ được giao trong 30 phút'
+      // }
     ];
 
     if (notifications.length === 0) {
