@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Calendar, Home, Menu as MenuIcon, FileText, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NotificationBell from "@/components/NotificationBell";
-import UserProfile from "@/components/UserProfile";
+import UserProfile from "@/pages/profile/UserProfile";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/context/LanguageContext";
+
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

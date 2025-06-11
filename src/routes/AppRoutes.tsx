@@ -21,6 +21,8 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const GoogleSuccess = lazy(() => import("@/pages/auth/GoogleSuccess"));
 const Register = lazy(() => import("@/pages/auth/Register"));
 const Login = lazy(() => import("@/pages/auth/Login"));
+const UserProfile = lazy(() => import("@/pages/profile/ProfileForm"));
+const EditProfileForm = lazy(() => import("@/pages/profile/EditProfileForm"));
 
 const AppRoutes = () => {
   const { error, setError } = useLoading();
@@ -97,6 +99,22 @@ const AppRoutes = () => {
               </AuthChecker>
             }
           />
+          <Route
+  path="/profile"
+  element={
+    <AuthChecker>
+      <UserProfile />
+    </AuthChecker>
+  }
+/>
+<Route
+  path="/edit-profile"
+  element={
+    <AuthChecker>
+      <EditProfileForm />
+    </AuthChecker>
+  }
+/>
           <Route
             path="/coupons"
             element={

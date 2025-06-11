@@ -2,29 +2,28 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 import userApi from '../../api/userApi';
-import { RegisterLocalRequest, postLoginRequest, getMeResponse } from '../../types/User';
-import { fetchCustomerByUserId } from './customer.slice'; // ⬅️ Gọi sang slice customer nếu cần
+import { RegisterLocalRequest, postLoginRequest } from '../../types/User';
 
 export interface CustomerInfo {
   customer_id: number;
   vip_id: number;
   loyalty_point: number;
-  total_spent: number;
+  total_spent: number | string; // nếu BE trả string thì giữ string
 }
 
 export interface UserProfile {
-  email: string;
-  id: number;
-  account_id: number;
+  user_id: number;
   name: string;
   username: string;
-  avatar: string | null;
   phone: string | null;
+  avatar: string | null;
   address: string;
   role: string;
-  created_at: string;
-  updated_at: string;
-  customer?: CustomerInfo | null; 
+  email?: string;
+  account_id?: number;
+  created_at?: string;
+  updated_at?: string;
+  customer?: CustomerInfo | null;
 }
 
 interface AuthState {
@@ -47,6 +46,7 @@ export const registerUser = createAsyncThunk(
   async (userData: RegisterLocalRequest, { rejectWithValue }) => {
     try {
       const response = await userApi.register(userData);
+      console.log('📝 registerUser response:', response.data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -55,21 +55,24 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Đăng nhập + lấy thông tin user qua getMe
+// Đăng nhập + lấy thông tin user
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (loginData: postLoginRequest, { dispatch, rejectWithValue }) => {
+  async (loginData: postLoginRequest, { rejectWithValue }) => {
     try {
-      const response = await userApi.login(loginData);
+      const response = await userApi.loginWithCustomer(loginData);
       const { token, expires } = response.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('tokenExpires', expires);
 
       const meRes = await userApi.getMe();
-      const user = meRes.data.user;
+      const rawUser = meRes.data.user;
 
- 
+      console.log('🔐 [loginUser] token:', token);
+      console.log('🔐 [loginUser] rawUser:', rawUser);
+
+      const user: UserProfile = { ...rawUser };
 
       return { token, user };
     } catch (error: unknown) {
@@ -79,17 +82,17 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Lấy lại user (ví dụ khi reload trang)
+// getMe khi reload trang
 export const getMe = createAsyncThunk(
   'auth/getMe',
-  async (_, { dispatch, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await userApi.getMe();
-      const user = response.data.user as UserProfile;
+      const rawUser = response.data.user;
 
-      // if (user?.customer?.customer_id) {
-      //   dispatch(fetchCustomerByUserId(user.customer.customer_id));
-      // }
+      console.log('🙋‍♂️ [getMe] rawUser:', rawUser);
+
+      const user: UserProfile = { ...rawUser };
 
       return user;
     } catch (error: unknown) {
@@ -120,7 +123,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        // Có thể nhận user từ payload nếu BE trả về
         state.user = (action.payload as any)?.user ?? null;
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -134,8 +136,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-          console.log('🔐 [loginUser.fulfilled] user payload:', action.payload.user); // 👈 thêm dòng này
-
         state.loading = false;
         state.token = action.payload.token;
         state.user = action.payload.user;
@@ -151,8 +151,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(getMe.fulfilled, (state, action) => {
-          console.log('🙋‍♂️ [getMe.fulfilled] user payload:', action.payload); // 👈 thêm dòng này
-
         state.loading = false;
         state.user = action.payload;
       })

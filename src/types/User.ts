@@ -122,7 +122,7 @@ export interface googleAuthenResponse {
 export interface getMeResponse {
   success: boolean;
   user: {
-    id: number;
+    user_id: number;
     account_id: number;
     name: string;
     username: string;
@@ -146,6 +146,7 @@ export interface adminLoginResponse {
   expires: string;
 }
 export interface postLoginWithCustomerIdResponse{
-    email: string;
-  password: string;
+  message: string;
+  token: string;
+  expires: string;
 }
