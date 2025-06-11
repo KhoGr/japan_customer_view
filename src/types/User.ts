@@ -145,3 +145,7 @@ export interface adminLoginResponse {
   token: string;
   expires: string;
 }
+export interface postLoginWithCustomerIdResponse{
+    email: string;
+  password: string;
+}

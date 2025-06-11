@@ -34,6 +34,22 @@ export const fetchCustomers = createAsyncThunk(
   }
 );
 
+// GET ONE by userId
+export const fetchCustomerByUserId = createAsyncThunk(
+  'customers/fetchByUserId',
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const res = await customerApi.getById(userId);
+      return res.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      return rejectWithValue(
+        axiosError.response?.data?.message || 'Không thể lấy thông tin khách hàng'
+      );
+    }
+  }
+);
+
 // SEARCH
 export const searchCustomers = createAsyncThunk(
   'customers/search',
@@ -96,7 +112,7 @@ const customersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // FETCH
+      // FETCH ALL
       .addCase(fetchCustomers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -106,6 +122,26 @@ const customersSlice = createSlice({
         state.data = action.payload;
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // FETCH ONE
+      .addCase(fetchCustomerByUserId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCustomerByUserId.fulfilled, (state, action) => {
+        state.loading = false;
+        const customer = action.payload;
+        const index = state.data.findIndex((c) => c.customer_id === customer.customer_id);
+        if (index !== -1) {
+          state.data[index] = customer;
+        } else {
+          state.data.push(customer);
+        }
+      })
+      .addCase(fetchCustomerByUserId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

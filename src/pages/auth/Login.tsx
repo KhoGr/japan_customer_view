@@ -35,7 +35,6 @@ const Login = () => {
   const handleLogin = async (data: postLoginRequest) => {
     try {
       await dispatch(loginUser(data)).unwrap();
-      // ⛔ KHÔNG navigate ở đây. Đợi getMe → user → useEffect xử lý.
     } catch (err) {
       dispatch(setMessage({ type: "error", message: "Đăng nhập thất bại" }));
       console.error("Lỗi đăng nhập:", err);

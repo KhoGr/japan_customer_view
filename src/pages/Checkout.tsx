@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/footer/Footer";
 import OrderSummary from "@/components/OrderSummary";
-import { FoodItem } from "@/components/FoodCard";
+import { FoodItem } from "@/components/foodmenu/FoodCard";
 
 type CartItem = {
   item: FoodItem;

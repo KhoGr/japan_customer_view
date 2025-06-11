@@ -95,22 +95,7 @@ const Coupons = () => {
             </div>
           )}
 
-          {/* <div className="mt-12 bg-primary/10 p-8 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Đăng ký nhận thông báo</h2>
-            <p className="text-gray-600 mb-6 max-w-xl mx-auto">
-              Đăng ký để nhận thông báo về các chương trình khuyến mãi đặc biệt và mã giảm giá độc quyền
-            </p>
-            <div className="flex max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Email của bạn"
-                className="flex-grow rounded-l-md border border-gray-300 px-4 py-2 focus-visible:ring-1 focus-visible:ring-primary"
-              />
-              <button className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary/90">
-                Đăng ký
-              </button>
-            </div>
-          </div> */}
+
         </div>
       </main>
 

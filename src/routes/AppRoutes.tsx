@@ -5,16 +5,16 @@ import chatbotResponseApi from "@/api/chatbotResponseApi";
 import { ChatbotResponse } from "@/types/chatbotResponse";
 import { useLoading } from "@/context/LoadingContext";
 import AuthChecker from "@/components/ui/AuthChecker";
-import GuestRoute from "@/components/ui/GuestRoute"; // ✅ THÊM DÒNG NÀY
+import GuestRoute from "@/components/ui/GuestRoute"; 
 import ChatBot from "@/pages/chatbot/ChatBot";
 
 // ⏳ Lazy load pages
-const Index = lazy(() => import("@/pages/Index"));
-const Menu = lazy(() => import("@/pages/Menu"));
+const Index = lazy(() => import("@/pages/index/Index"));
+const Menu = lazy(() => import("@/pages/Foodmenu/Menu"));
 const Reservation = lazy(() => import("@/pages/Reservation"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const Coupons = lazy(() => import("@/pages/voucher/Coupons"));
-const FoodDetail = lazy(() => import("@/pages/FoodDetail"));
+const FoodDetail = lazy(() => import("@/pages/foodDetail/FoodDetail"));
 const Orders = lazy(() => import("@/pages/Orders"));
 const VipProgram = lazy(() => import("@/pages/vip/VipProgram"));
 const NotFound = lazy(() => import("@/pages/NotFound"));

@@ -11,6 +11,11 @@ export interface Comment {
   // Phát sinh thêm để hiển thị trong UI
   menu_item_name: string;
   user_name: string;
+  avatar:string;
+    commented_item: {
+    name: string;
+  };
+  
 }
 
 // Dữ liệu trả về từ backend
@@ -71,3 +76,18 @@ export interface CommentFormProps {
   onCancel: () => void;
   preselectedMenuItemId?: string;
 }
+export const mapCommentResponseToComment = (res: CommentResponse): Comment => ({
+  comment_id: res.comment_id,
+  item_id: res.item_id,
+  customer_id: res.customer_id,
+  rating: res.rating,
+  comment: res.comment || '',
+  created_at: res.created_at,
+  updated_at: res.updated_at,
+  menu_item_name: res.commented_item?.name || '',
+  user_name: res.commenter?.user_info?.name || 'Ẩn danh',
+  avatar: res.commenter?.user_info?.avatar || '',
+  commented_item: {
+    name: res.commented_item?.name || '',
+  },
+});

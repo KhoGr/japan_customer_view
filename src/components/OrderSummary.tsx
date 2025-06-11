@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { FoodItem } from "./FoodCard";
+import { FoodItem } from "./foodmenu/FoodCard";
 
 type CartItem = {
   item: FoodItem;

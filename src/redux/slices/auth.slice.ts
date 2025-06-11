@@ -1,19 +1,19 @@
-
-//////////////////////////////
-
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 import userApi from '../../api/userApi';
-import {
-  RegisterLocalRequest,
-  postLoginRequest,
-  getMeResponse, 
-} from '../../types/User';
+import { RegisterLocalRequest, postLoginRequest, getMeResponse } from '../../types/User';
+import { fetchCustomerByUserId } from './customer.slice'; // ⬅️ Gọi sang slice customer nếu cần
 
+export interface CustomerInfo {
+  customer_id: number;
+  vip_id: number;
+  loyalty_point: number;
+  total_spent: number;
+}
 
 export interface UserProfile {
-  email:string;
+  email: string;
   id: number;
   account_id: number;
   name: string;
@@ -24,6 +24,7 @@ export interface UserProfile {
   role: string;
   created_at: string;
   updated_at: string;
+  customer?: CustomerInfo | null; 
 }
 
 interface AuthState {
@@ -40,81 +41,65 @@ const initialState: AuthState = {
   error: null,
 };
 
+// Đăng ký
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterLocalRequest, { rejectWithValue }) => {
     try {
       const response = await userApi.register(userData);
-      return response.data; 
+      return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Đăng ký thất bại'
-      );
+      return rejectWithValue(axiosError.response?.data?.message || 'Đăng ký thất bại');
     }
   }
 );
 
+// Đăng nhập + lấy thông tin user qua getMe
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (loginData: postLoginRequest, { rejectWithValue }) => {
+  async (loginData: postLoginRequest, { dispatch, rejectWithValue }) => {
     try {
       const response = await userApi.login(loginData);
-      const { token, expires } = response.data; 
+      const { token, expires } = response.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("tokenExpires", expires);  
+      localStorage.setItem('token', token);
+      localStorage.setItem('tokenExpires', expires);
 
-      return { token, expires };
+      const meRes = await userApi.getMe();
+      const user = meRes.data.user;
+
+ 
+
+      return { token, user };
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Đăng nhập thất bại'
-      );
+      return rejectWithValue(axiosError.response?.data?.message || 'Đăng nhập thất bại');
     }
   }
 );
 
-
-
-// export const loginAdmin = createAsyncThunk(
-//   'auth/loginAdmin',
-//   async (loginData: postLoginRequest, { rejectWithValue }) => {
-//     try {
-//       const response = await userApi.adminLogin(loginData); // <-- gọi API riêng
-//       const { token, expires } = response.data;
-//       localStorage.setItem("token", token);
-//       localStorage.setItem("tokenExpires", expires);
-//       return { token, expires };
-//     } catch (error: unknown) {
-//       const axiosError = error as AxiosError<{ message: string }>;
-//       return rejectWithValue(
-//         axiosError.response?.data?.message || 'Đăng nhập admin thất bại'
-//       );
-//     }
-//   }
-// );
+// Lấy lại user (ví dụ khi reload trang)
 export const getMe = createAsyncThunk(
   'auth/getMe',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const response = await userApi.getMe();
-      if (response.data && response.data.user) {
-        return response.data.user;
-      } else {
-        return rejectWithValue('Không có thông tin người dùng');
-      }
+      const user = response.data.user as UserProfile;
+
+      // if (user?.customer?.customer_id) {
+      //   dispatch(fetchCustomerByUserId(user.customer.customer_id));
+      // }
+
+      return user;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue(
-        axiosError.response?.data?.message || 'Không thể lấy thông tin người dùng'
-      );
+      return rejectWithValue(axiosError.response?.data?.message || 'Không thể lấy thông tin người dùng');
     }
   }
 );
 
-
-/////////////////////////////////////////////////////
+// Slice
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -122,48 +107,54 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
-      localStorage.removeItem('token');// fix lại cái này
-      localStorage.removeItem("tokenExpires")
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpires');
     },
   },
   extraReducers: (builder) => {
-    // Register
     builder
+      // Đăng ký
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // Có thể nhận user từ payload nếu BE trả về
         state.user = (action.payload as any)?.user ?? null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Login
+
+      // Đăng nhập
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+          console.log('🔐 [loginUser.fulfilled] user payload:', action.payload.user); // 👈 thêm dòng này
+
         state.loading = false;
         state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
-        localStorage.setItem("tokenExpires", action.payload.expires);
+        state.user = action.payload.user;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
+
+      // getMe
       .addCase(getMe.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getMe.fulfilled, (state, action) => {
+          console.log('🙋‍♂️ [getMe.fulfilled] user payload:', action.payload); // 👈 thêm dòng này
+
         state.loading = false;
-        state.user = action.payload ?? null;
+        state.user = action.payload;
       })
       .addCase(getMe.rejected, (state, action) => {
         state.loading = false;
@@ -171,6 +162,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpires');
       });
   },
 });

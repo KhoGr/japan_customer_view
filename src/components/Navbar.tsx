@@ -19,6 +19,7 @@ const Navbar = () => {
       if (savedCart) {
         try {
           const cart = JSON.parse(savedCart);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const count = cart.reduce((total: number, item: any) => total + item.quantity, 0);
           setCartItemsCount(count);
         } catch (e) {

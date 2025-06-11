@@ -1,23 +1,13 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
-export type FoodItem = {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  fullDescription?: string;
-};
+import { MenuItem } from "@/types/menuItem";
 
 type FoodCardProps = {
-  item: FoodItem;
-  onAddToCart: (item: FoodItem, quantity: number) => void;
+  item: MenuItem;
+  onAddToCart: (item: MenuItem, quantity: number) => void;
 };
 
 const FoodCard = ({ item, onAddToCart }: FoodCardProps) => {
@@ -33,22 +23,36 @@ const FoodCard = ({ item, onAddToCart }: FoodCardProps) => {
     setQuantity(1);
   };
 
+  const finalPrice =
+    item.price * (1 - (item.discount_percent ?? 0) / 100);
+
   return (
     <div className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-white">
-      <Link to={`/food/${item.id}`} className="block h-48 overflow-hidden">
+      <Link to={`/food/${item.item_id}`} className="block h-48 overflow-hidden">
         <img
-          src={item.image}
+          src={item.image_url || "/no-image.png"}
           alt={item.name}
           className="w-full h-full object-cover transform hover:scale-105 transition-transform"
         />
       </Link>
       <div className="p-4">
-        <Link to={`/food/${item.id}`} className="block">
-          <h3 className="font-bold text-xl mb-2 hover:text-primary transition-colors">{item.name}</h3>
+        <Link to={`/food/${item.item_id}`} className="block">
+          <h3 className="font-bold text-xl mb-2 hover:text-primary transition-colors">
+            {item.name}
+          </h3>
         </Link>
-        <p className="text-gray-600 text-sm mb-4 h-12 overflow-hidden">{item.description}</p>
+        <p className="text-gray-600 text-sm mb-4 h-12 overflow-hidden">
+          {item.description || "Không có mô tả."}
+        </p>
         <div className="flex items-center justify-between mt-4">
-          <span className="text-lg font-bold text-primary">{item.price.toLocaleString()} ₫</span>
+          <span className="text-lg font-bold text-primary">
+            {finalPrice.toLocaleString()} ₫
+            {item.discount_percent ? (
+              <span className="text-sm text-gray-500 line-through ml-2">
+                {item.price.toLocaleString()} ₫
+              </span>
+            ) : null}
+          </span>
           <div className="flex items-center">
             <div className="flex border rounded mr-2">
               <button
