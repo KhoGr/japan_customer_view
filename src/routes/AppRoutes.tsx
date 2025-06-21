@@ -22,7 +22,7 @@ const Register = lazy(() => import("@/pages/auth/Register"));
 const Login = lazy(() => import("@/pages/auth/Login"));
 const UserProfile = lazy(() => import("@/pages/profile/ProfileForm"));
 const EditProfileForm = lazy(() => import("@/pages/profile/EditProfileForm"));
-const OrdersReturn = lazy(() => import("@/pages/OrdersReturn"));
+const OrdersReturn = lazy(() => import("@/pages/OrdersReturn"))
 
 const AppRoutes = () => {
   const { error, setError } = useLoading();
@@ -61,7 +61,7 @@ const AppRoutes = () => {
           <Route path="/edit-profile" element={<AuthChecker><EditProfileForm /></AuthChecker>} />
           <Route path="/coupons" element={<AuthChecker><Coupons /></AuthChecker>} />
           <Route path="/food/:id" element={<AuthChecker><FoodDetail /></AuthChecker>} />
-          <Route path="/order" element={<AuthChecker><Orders /></AuthChecker>} />
+          <Route path="/orders" element={<AuthChecker><Orders /></AuthChecker>} />
           <Route path="/vip" element={<AuthChecker><VipProgram /></AuthChecker>} />
           <Route path="*" element={<AuthChecker><NotFound /></AuthChecker>} />
           <Route path="/order-return" element={<OrdersReturn />} />
