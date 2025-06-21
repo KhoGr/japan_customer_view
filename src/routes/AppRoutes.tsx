@@ -64,7 +64,7 @@ const AppRoutes = () => {
           <Route path="/orders" element={<AuthChecker><Orders /></AuthChecker>} />
           <Route path="/vip" element={<AuthChecker><VipProgram /></AuthChecker>} />
           <Route path="*" element={<AuthChecker><NotFound /></AuthChecker>} />
-          <Route path="/order-return" element={<OrdersReturn />} />
+          <Route path="/order-return" element={<AuthChecker><OrdersReturn /></AuthChecker>} />
 
         </Routes>
       </Suspense>
