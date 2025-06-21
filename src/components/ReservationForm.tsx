@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,17 +32,24 @@ import {
 } from "@/components/ui/select";
 import TableAllocationDialog from "./TableAllocationDialog";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAppSelector } from "../redux/hooks";
+import { TimePicker } from "antd";
+import dayjs from "dayjs";
+import  orderApi  from "@/api/orderApi"; // ✅ đảm bảo bạn đã import đúng
+import { OrderType } from "@/types/order";
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Tên phải có ít nhất 2 ký tự" }),
   phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }),
-  email: z.string().email({ message: "Email không hợp lệ" }),
   date: z.date({ required_error: "Vui lòng chọn ngày" }),
-  time: z.string({ required_error: "Vui lòng chọn giờ" }),
+  reservation_time: z.string({ required_error: "Vui lòng chọn giờ" }),
   guests: z.string({ required_error: "Vui lòng chọn số khách" }),
   notes: z.string().optional(),
-  tables: z.array(z.string()).optional(),
+  tables: z.array(z.number()).optional(),
 });
+
+const guestOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
 
 const ReservationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,122 +57,126 @@ const ReservationForm = () => {
   const [currentGuestCount, setCurrentGuestCount] = useState<number>(0);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user } = useAppSelector((state) => state.auth);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      phone: "",
-      email: "",
+      name: user?.name || "",
+      phone: user?.phone || "",
       notes: "",
       tables: [],
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    console.log(values);
-    const tableInfo = values.tables && values.tables.length > 0 
-      ? `đã chọn ${values.tables.length} bàn` 
-      : "";
-      
+const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  setIsSubmitting(true);
+  const reservationDateTime = dayjs(values.date)
+  .hour(Number(values.reservation_time.split(":")[0]))
+  .minute(Number(values.reservation_time.split(":")[1]))
+  .second(0)
+  .toISOString();
+
+  try {
+const payload = {
+  customer_id: user?.customer.customer_id,
+  guest_count: Number(values.guests),
+  order_type: "reservation" as const,
+  order_date: new Date().toISOString(), // ✅ thời điểm tạo đơn
+  reservation_time: reservationDateTime, // ✅ lúc khách muốn tới
+  table_ids: values.tables || [],
+  note: values.notes || "",
+  order_items: [],
+};
+
+    await orderApi.create(payload); // gọi API thật
+
     toast({
       title: "Đặt bàn thành công!",
-      description: `Đã đặt bàn cho ${values.guests} khách vào lúc ${values.time}, ngày ${format(values.date, "dd/MM/yyyy")} ${tableInfo}`,
+      description: `Đã đặt bàn cho ${values.guests} khách vào lúc ${values.reservation_time}, ngày ${format(values.date, "dd/MM/yyyy")}`,
     });
-    
-    form.reset();
+
+    form.reset({
+      guests: "",
+      notes: "",
+      tables: [],
+    });
+  } catch (error) {
+    toast({
+      title: "Lỗi đặt bàn",
+      description: "Đã xảy ra lỗi khi đặt bàn. Vui lòng thử lại.",
+      variant: "destructive",
+    });
+  } finally {
     setIsSubmitting(false);
-  };
+  }
+};
+
 
   const handleGuestChange = (value: string) => {
     form.setValue("guests", value);
-    const guestCount = parseInt(value.replace('+', ''), 10);
+    const guestCount = parseInt(value.replace("+", ""), 10);
     setCurrentGuestCount(guestCount);
-    
-    // Mở dialog phân bổ bàn sau khi chọn số khách
     setShowTableDialog(true);
   };
 
-  const handleTableSelection = (selectedTables: string[]) => {
+  const handleTableSelection = (selectedTables: number[]) => {
     form.setValue("tables", selectedTables);
   };
-
-  const timeSlots = [
-    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30"
-  ];
-
-  const guestOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
 
   return (
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('fullName')}</FormLabel>
+                  <FormLabel>{t("fullName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('enterName')} {...field} className="japanese-card border-japanese-stone/30" />
+                    <Input placeholder={t("enterName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
+            {/* Phone */}
             <FormField
               control={form.control}
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('phone')}</FormLabel>
+                  <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('enterPhone')} {...field} className="japanese-card border-japanese-stone/30" />
+                    <Input placeholder={t("enterPhone")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('email')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('enterEmail')} {...field} className="japanese-card border-japanese-stone/30" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
+            {/* Guests */}
             <FormField
               control={form.control}
               name="guests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('guests')}</FormLabel>
-                  <Select 
-                    onValueChange={handleGuestChange} 
+                  <FormLabel>{t("guests")}</FormLabel>
+                  <Select
+                    onValueChange={handleGuestChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="japanese-card border-japanese-stone/30">
-                        <SelectValue placeholder={t('selectGuests')} />
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectGuests")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {guestOptions.map(option => (
+                      {guestOptions.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option === "10+" ? "10+ người" : `${option} người`}
                         </SelectItem>
@@ -175,28 +187,27 @@ const ReservationForm = () => {
                 </FormItem>
               )}
             />
-            
+
+            {/* Date */}
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('date')}</FormLabel>
+                  <FormLabel>{t("date")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "pl-3 text-left font-normal japanese-card border-japanese-stone/30",
+                            "pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yyyy")
-                          ) : (
-                            <span>{t('selectDate')}</span>
-                          )}
+                          {field.value
+                            ? format(field.value, "dd/MM/yyyy")
+                            : t("selectDate")}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -215,62 +226,68 @@ const ReservationForm = () => {
                 </FormItem>
               )}
             />
-            
+
+            {/* Time */}
             <FormField
               control={form.control}
-              name="time"
+              name="reservation_time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('time')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="japanese-card border-japanese-stone/30">
-                        <SelectValue placeholder={t('selectTime')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {timeSlots.map(time => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>{t("reservation_time")}</FormLabel>
+                  <FormControl>
+                    <TimePicker
+                      format="HH:mm"
+                      minuteStep={15}
+                      className="w-full"
+                      onChange={(value) => {
+                        if (value) {
+                          field.onChange(value.format("HH:mm"));
+                        }
+                      }}
+                      value={field.value ? dayjs(field.value, "HH:mm") : null}
+                      placeholder={t("selectTime")}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          
+
+          {/* Tables */}
           <FormField
             control={form.control}
             name="tables"
             render={() => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel className="font-japanese text-japanese-sumi">{t('selectedTables')}</FormLabel>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <FormLabel>{t("selectedTables")}</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowTableDialog(true)}
-                    className="text-xs zen-button"
                   >
-                    {t('selectTables')}
+                    {t("selectTables")}
                   </Button>
                 </div>
                 <FormControl>
-                  <div className="p-2 border rounded-md bg-japanese-washi/50 min-h-[40px] border-japanese-stone/30">
+                  <div className="p-2 border rounded-md bg-gray-100 min-h-[40px]">
                     {form.watch("tables")?.length ? (
                       <div className="flex flex-wrap gap-2">
                         {form.watch("tables")?.map((table) => (
-                          <div key={table} className="bg-primary/20 text-primary px-2 py-1 rounded text-sm">
-                            Bàn {table.replace("T", "")}
+                          <div
+                            key={table}
+                            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm"
+                          >
+                            Bàn {table}
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-japanese-stone">Chưa chọn bàn</p>
+                      <p className="text-sm text-muted-foreground">
+                        Chưa chọn bàn
+                      </p>
                     )}
                   </div>
                 </FormControl>
@@ -278,35 +295,37 @@ const ReservationForm = () => {
               </FormItem>
             )}
           />
-          
+
+          {/* Notes */}
           <FormField
             control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-japanese text-japanese-sumi">{t('notes')}</FormLabel>
+                <FormLabel>{t("notes")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('enterNotes')} {...field} className="japanese-card border-japanese-stone/30" />
+                  <Input placeholder={t("enterNotes")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
-          <Button 
-            type="submit" 
-            className="w-full zen-button font-japanese"
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting ? t('processing') : t('submit')}
+            {isSubmitting ? t("processing") : t("submit")}
           </Button>
         </form>
       </Form>
-      
+
       <TableAllocationDialog
         isOpen={showTableDialog}
         onClose={() => setShowTableDialog(false)}
-        guestCount={currentGuestCount}
+        guest_count={currentGuestCount}
         onConfirm={handleTableSelection}
       />
     </>

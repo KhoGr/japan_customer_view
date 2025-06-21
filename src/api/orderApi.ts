@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosClient from './AxiosClient';
 import {
   OrderModel,
@@ -69,6 +70,11 @@ const orderApi = {
       })
       .then(res => res.data);
   },
+  getByCustomerId(customerId: number) {
+  return axiosClient
+    .get<{ success: boolean; data: OrderModel[] }>(`${URL}/customer/${customerId}`)
+    .then(res => res.data.data);
+},
 };
 
 export default orderApi;

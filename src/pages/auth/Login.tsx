@@ -12,25 +12,25 @@ const Login = () => {
   const navigate = useNavigate();
   const { user, loading, error, token } = useSelector((state: RootState) => state.auth);
 
-  // ✅ Khi có token mà chưa có user, gọi getMe
   useEffect(() => {
     if (token && !user) {
       dispatch(getMe());
     }
   }, [token, user, dispatch]);
 
-  // ✅ Khi user đã được set, xử lý điều hướng hoặc từ chối
-  useEffect(() => {
-    if (user) {
-      if (user.role === "customer") {
-        dispatch(setMessage({ type: "success", message: "Đăng nhập thành công!" }));
-        navigate("/");
-      } else {
-        dispatch(logout());
-        dispatch(setMessage({ type: "error", message: "Chỉ khách hàng mới được phép đăng nhập." }));
-      }
-    }
-  }, [user, dispatch, navigate]);
+useEffect(() => {
+  if (!user) return;
+
+  if (user.role === "customer") {
+    dispatch(setMessage({ type: "success", message: "Đăng nhập thành công!" }));
+    navigate("/", { replace: true });
+  } else {
+    dispatch(logout());
+    dispatch(setMessage({ type: "error", message: "Chỉ khách hàng mới được phép đăng nhập." }));
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [user?.user_id]); // Chỉ theo dõi khi user xuất hiện
+
 
   const handleLogin = async (data: postLoginRequest) => {
     try {
@@ -53,6 +53,15 @@ const Login = () => {
           error={error}
           onForgotPasswordClick={() => navigate("/forgot-password")}
         />
+        <div className="mt-4 text-center text-sm text-gray-700">
+          Chưa có tài khoản?{" "}
+          <span
+            onClick={() => navigate("/account/register")}
+            className="text-[#b03a2e] hover:underline cursor-pointer font-medium"
+          >
+            Đăng ký
+          </span>
+        </div>
       </div>
     </div>
   );

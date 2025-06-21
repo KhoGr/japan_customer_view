@@ -1,4 +1,4 @@
-
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,12 +7,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { useState } from "react";
+import {
+  Table as UITable,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { CheckCircle, Circle } from "lucide-react";
+import tableApi from "@/api/tableApi";
+import { Table as TableType } from "@/types/table";
 
 interface TableOption {
-  id: string;
+  id: number;
   name: string;
   capacity: number;
   available: boolean;
@@ -21,60 +29,69 @@ interface TableOption {
 interface TableAllocationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  guestCount: number;
-  onConfirm: (selectedTables: string[]) => void;
+  guest_count: number;
+  onConfirm: (selectedTables: number[]) => void;
 }
 
 const TableAllocationDialog = ({
   isOpen,
   onClose,
-  guestCount,
+  guest_count,
   onConfirm,
 }: TableAllocationDialogProps) => {
-  // Mock data cho các bàn có sẵn - trong thực tế sẽ lấy từ API
-  const availableTables: TableOption[] = [
-    { id: "T1", name: "Bàn 1", capacity: 2, available: true },
-    { id: "T2", name: "Bàn 2", capacity: 2, available: true },
-    { id: "T3", name: "Bàn 3", capacity: 4, available: true },
-    { id: "T4", name: "Bàn 4", capacity: 4, available: true },
-    { id: "T5", name: "Bàn 5", capacity: 6, available: true },
-    { id: "T6", name: "Bàn 6", capacity: 8, available: true },
-    { id: "T7", name: "Bàn 7", capacity: 10, available: true },
-  ];
+  const [tables, setTables] = useState<TableOption[]>([]);
+  const [selectedTables, setSelectedTables] = useState<number[]>([]);
 
-  // Lọc bàn phù hợp với số khách
-  const suitableTables = availableTables.filter(
-    (table) => table.available && table.capacity >= guestCount
-  );
+  useEffect(() => {
+    if (isOpen) {
+      tableApi.getAll().then((data: TableType[]) => {
+        const mapped = data
+          .filter((t) => t.status === "available")
+          .map<TableOption>((t) => ({
+            id: t.table_id,
+            name: `Bàn ${t.table_number} (Tầng ${t.floor ?? 1})`,
+            capacity: t.seat_count,
+            available: true,
+          }));
+        setTables(mapped);
 
-  // Đề xuất bàn tối ưu (bàn có capacity gần nhất với số khách)
-  const optimalTables = [...suitableTables].sort(
-    (a, b) => a.capacity - b.capacity
-  );
+        const optimal = [...mapped]
+          .filter((t) => t.capacity >= guest_count)
+          .sort((a, b) => a.capacity - b.capacity);
+        setSelectedTables(optimal.length > 0 ? [optimal[0].id] : []);
+      });
+    } else {
+      setSelectedTables([]);
+    }
+  }, [isOpen, guest_count]);
 
-  const [selectedTables, setSelectedTables] = useState<string[]>(
-    optimalTables.length > 0 ? [optimalTables[0].id] : []
-  );
+  const selectedCapacity = tables
+    .filter((t) => selectedTables.includes(t.id))
+    .reduce((sum, t) => sum + t.capacity, 0);
 
-  // Tổng số chỗ ngồi đã chọn
-  const totalCapacity = availableTables
-    .filter((table) => selectedTables.includes(table.id))
-    .reduce((sum, table) => sum + table.capacity, 0);
+  const handleTableToggle = (tableId: number) => {
+    const isSelected = selectedTables.includes(tableId);
+    const table = tables.find((t) => t.id === tableId);
+    if (!table) return;
 
-  const handleTableToggle = (tableId: string) => {
-    setSelectedTables((prev) => {
-      if (prev.includes(tableId)) {
-        return prev.filter((id) => id !== tableId);
-      } else {
-        return [...prev, tableId];
-      }
-    });
+    const newCapacity = isSelected
+      ? selectedCapacity - table.capacity
+      : selectedCapacity + table.capacity;
+
+    if (!isSelected && newCapacity > 2 * guest_count) return;
+
+    setSelectedTables((prev) =>
+      isSelected ? prev.filter((id) => id !== tableId) : [...prev, tableId]
+    );
   };
 
   const handleConfirm = () => {
     onConfirm(selectedTables);
     onClose();
   };
+
+  const isConfirmDisabled =
+    selectedCapacity < guest_count || selectedCapacity > 2 * guest_count;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,31 +102,31 @@ const TableAllocationDialog = ({
 
         <div className="py-4">
           <p className="mb-4">
-            Vui lòng chọn bàn cho {guestCount} khách của bạn. 
-            <span className="font-medium text-primary"> 
-              Đã chọn: {totalCapacity} chỗ ngồi
+            Vui lòng chọn bàn cho {guest_count} khách.{" "}
+            <span className="font-medium text-primary">
+              Đã chọn: {selectedCapacity} chỗ
             </span>
           </p>
 
           <div className="border rounded-md max-h-[300px] overflow-auto">
-            <Table>
+            <UITable>
               <TableHeader>
                 <TableRow>
                   <TableHead>Bàn</TableHead>
-                  <TableHead>Số chỗ</TableHead>
+                  <TableHead>Sức chứa</TableHead>
                   <TableHead className="text-right">Chọn</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {availableTables.map((table) => (
-                  <TableRow 
+                {tables.map((table) => (
+                  <TableRow
                     key={table.id}
                     className={`cursor-pointer ${
                       selectedTables.includes(table.id) ? "bg-primary/10" : ""
                     }`}
                     onClick={() => handleTableToggle(table.id)}
                   >
-                    <TableCell className="font-medium">{table.name}</TableCell>
+                    <TableCell>{table.name}</TableCell>
                     <TableCell>{table.capacity} người</TableCell>
                     <TableCell className="text-right">
                       {selectedTables.includes(table.id) ? (
@@ -121,12 +138,17 @@ const TableAllocationDialog = ({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </UITable>
           </div>
 
-          {totalCapacity < guestCount && (
+          {selectedCapacity < guest_count && (
             <p className="mt-2 text-sm text-destructive">
-              Chưa đủ chỗ ngồi cho {guestCount} khách. Vui lòng chọn thêm bàn.
+              Chưa đủ chỗ cho {guest_count} khách. Vui lòng chọn thêm bàn.
+            </p>
+          )}
+          {selectedCapacity > 2 * guest_count && (
+            <p className="mt-2 text-sm text-destructive">
+              Bạn đã chọn quá nhiều chỗ ({selectedCapacity} người). Vui lòng giảm bớt bàn.
             </p>
           )}
         </div>
@@ -135,10 +157,7 @@ const TableAllocationDialog = ({
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button 
-            onClick={handleConfirm} 
-            disabled={totalCapacity < guestCount}
-          >
+          <Button onClick={handleConfirm} disabled={isConfirmDisabled}>
             Xác nhận
           </Button>
         </DialogFooter>

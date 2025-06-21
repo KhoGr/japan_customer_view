@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type TableStatus = 'available' | 'occupied' | 'reserved' | 'unavailable';
 
 export type Table = {

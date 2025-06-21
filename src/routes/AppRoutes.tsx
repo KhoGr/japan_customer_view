@@ -5,17 +5,16 @@ import chatbotResponseApi from "@/api/chatbotResponseApi";
 import { ChatbotResponse } from "@/types/chatbotResponse";
 import { useLoading } from "@/context/LoadingContext";
 import AuthChecker from "@/components/ui/AuthChecker";
-import GuestRoute from "@/components/ui/GuestRoute"; 
 import ChatBot from "@/pages/chatbot/ChatBot";
 
 // ⏳ Lazy load pages
 const Index = lazy(() => import("@/pages/index/Index"));
 const Menu = lazy(() => import("@/pages/Foodmenu/Menu"));
 const Reservation = lazy(() => import("@/pages/Reservation"));
-const Checkout = lazy(() => import("@/pages/Checkout"));
+const Checkout = lazy(() => import("@/pages/checkout/Checkout"));
 const Coupons = lazy(() => import("@/pages/voucher/Coupons"));
 const FoodDetail = lazy(() => import("@/pages/foodDetail/FoodDetail"));
-const Orders = lazy(() => import("@/pages/Orders"));
+const Orders = lazy(() => import("@/pages/Order/Orders"));
 const VipProgram = lazy(() => import("@/pages/vip/VipProgram"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const GoogleSuccess = lazy(() => import("@/pages/auth/GoogleSuccess"));
@@ -47,114 +46,23 @@ const AppRoutes = () => {
 
       <Suspense fallback={<div>Đang tải trang...</div>}>
         <Routes>
-          {/* ❌ Guest-only routes */}
-          <Route
-            path="/account/login"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/account/register"
-            element={
-              <GuestRoute>
-                <Register />
-              </GuestRoute>
-            }
-          />
+          {/* 🟢 Public Routes */}
+          <Route path="/account/login" element={<Login />} />
+          <Route path="/account/register" element={<Register />} />
           <Route path="/google-success" element={<GoogleSuccess />} />
 
-          {/* ✅ Authenticated routes */}
-          <Route
-            path="/"
-            element={
-              <AuthChecker>
-                <Index />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/menu"
-            element={
-              <AuthChecker>
-                <Menu />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/reservation"
-            element={
-              <AuthChecker>
-                <Reservation />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <AuthChecker>
-                <Checkout />
-              </AuthChecker>
-            }
-          />
-          <Route
-  path="/profile"
-  element={
-    <AuthChecker>
-      <UserProfile />
-    </AuthChecker>
-  }
-/>
-<Route
-  path="/edit-profile"
-  element={
-    <AuthChecker>
-      <EditProfileForm />
-    </AuthChecker>
-  }
-/>
-          <Route
-            path="/coupons"
-            element={
-              <AuthChecker>
-                <Coupons />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/food/:id"
-            element={
-              <AuthChecker>
-                <FoodDetail />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <AuthChecker>
-                <Orders />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="/vip"
-            element={
-              <AuthChecker>
-                <VipProgram />
-              </AuthChecker>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <AuthChecker>
-                <NotFound />
-              </AuthChecker>
-            }
-          />
+          {/* 🔐 Authenticated Routes */}
+          <Route path="/" element={<AuthChecker><Index /></AuthChecker>} />
+          <Route path="/menu" element={<AuthChecker><Menu /></AuthChecker>} />
+          <Route path="/reservation" element={<AuthChecker><Reservation /></AuthChecker>} />
+          <Route path="/checkout" element={<AuthChecker><Checkout /></AuthChecker>} />
+          <Route path="/profile" element={<AuthChecker><UserProfile /></AuthChecker>} />
+          <Route path="/edit-profile" element={<AuthChecker><EditProfileForm /></AuthChecker>} />
+          <Route path="/coupons" element={<AuthChecker><Coupons /></AuthChecker>} />
+          <Route path="/food/:id" element={<AuthChecker><FoodDetail /></AuthChecker>} />
+          <Route path="/orders" element={<AuthChecker><Orders /></AuthChecker>} />
+          <Route path="/vip" element={<AuthChecker><VipProgram /></AuthChecker>} />
+          <Route path="*" element={<AuthChecker><NotFound /></AuthChecker>} />
         </Routes>
       </Suspense>
 
