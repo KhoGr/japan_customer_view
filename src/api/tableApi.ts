@@ -18,7 +18,7 @@ const tableApi = {
   update(id: number, data: UpdateTableDto): Promise<Table> {
     return axiosInstance.put(`/table/${id}`, data, {
       headers: {
-        'x-socket-id': socket.id || '', // 👈 Truyền socket.id vào header
+        'x-socket-id': socket.id || '', 
       },
     }).then(res => res.data.data);
   },

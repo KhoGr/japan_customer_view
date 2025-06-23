@@ -18,7 +18,7 @@ import {
   getMeResponse,
   adminLoginRequest,
   adminLoginResponse,
-  postLoginWithCustomerIdResponse, // ✅ Thêm dòng này
+  postLoginWithCustomerIdResponse, 
 } from '../types/User';
 
 const URL = '/account';
@@ -82,7 +82,6 @@ const userApi = {
     return axiosClient.post<adminLoginResponse>(`${URL}/admin-login`, data);
   },
 
-  // ✅ Hàm mới - đăng nhập trả về cả customer_id
   loginWithCustomer(data: postLoginRequest) {
     return axiosClient.post<postLoginWithCustomerIdResponse>(`${URL}/login-with-customer`, data);
   },

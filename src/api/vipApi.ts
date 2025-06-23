@@ -5,7 +5,7 @@ import {
   UpdateVipLevelDto,
 } from '../types/vip';
 
-const URL = '/vip'; // Đổi cho đúng với route backend (đã đăng ký là /membership)
+const URL = '/vip'; 
 
 const vipAPi = {
   getAll() {
@@ -17,7 +17,7 @@ const vipAPi = {
   },
 
   create(data: CreateVipLevelDto) {
-    return axiosClient.post<VipLevel>(`${URL}/create`, data); // ✅ sửa lại đúng endpoint
+    return axiosClient.post<VipLevel>(`${URL}/create`, data); 
   },
 
   update(id: number, data: UpdateVipLevelDto) {

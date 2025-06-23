@@ -10,7 +10,7 @@ const GoogleSuccess = () => {
     const tokenExpires = searchParams.get("tokenExpires");
 
     if (token && tokenExpires) {
-      const expireDate = new Date(tokenExpires); // ISO string -> Date
+      const expireDate = new Date(tokenExpires); 
 
       // Nếu giá trị hợp lệ
       if (!isNaN(expireDate.getTime())) {

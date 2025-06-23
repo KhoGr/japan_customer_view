@@ -10,12 +10,10 @@ import {
 const URL = '/menu-item-comment';
 
 const commentApi = {
-  // ✅ Lấy tất cả comment
   getAll() {
     return axiosClient.get<CommentResponse[]>(`${URL}/`);
   },
 
-  // Lấy tất cả comment theo menu item ID
   getByMenuItemId(itemId: string) {
     return axiosClient.get<CommentResponse[]>(`${URL}/item/${itemId}`);
   },
@@ -37,7 +35,6 @@ const commentApi = {
 
   // Tìm kiếm comment theo rating, tên khách hàng, tên món ăn
   search(params: SearchCommentQuery) {
-      console.log('📨 Sending filters to backend:', params);
 
     return axiosClient.get<CommentResponse[]>(`${URL}/search`, {
       params,

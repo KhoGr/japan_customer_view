@@ -10,10 +10,7 @@ const paymentApi = {
     });
   },
 
-  /**
-   * Xử lý IPN thủ công từ VNPay (nếu cần)
-   * @param vnpParams object chứa toàn bộ query params do VNPay trả về
-   */
+//bug quá
   handleVNPayIPN(vnpParams: Record<string, string>) {
     return axiosClient.get<{ RspCode: string; Message: string }>(`${URL}/vnpay/ipn`, {
       params: vnpParams,

@@ -24,7 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     form.resetFields();
   };
 const handleGoogleLogin = () => {
-  window.location.href = 'http://localhost:4000/api/account/auth/google';
+  window.location.href = 'https://api.vnpt-hn.io.vn/api/account/auth/google';
 };
 
   return (

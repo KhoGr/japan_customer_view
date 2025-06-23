@@ -9,7 +9,6 @@ const axiosClient = axios.create({
   },
 });
 
-// ✅ Interceptor thêm token vào request
 axiosClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -21,7 +20,6 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Interceptor xử lý lỗi response
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {

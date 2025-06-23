@@ -63,7 +63,7 @@ const Checkout = () => {
 
   useEffect(() => {
     // 🔌 Kết nối socket
-    socketRef.current = io("http://localhost:4000");
+    socketRef.current = io("https://api.vnpt-hn.io.vn");
 
     return () => {
       socketRef.current?.disconnect();
@@ -134,7 +134,6 @@ const Checkout = () => {
 
       await orderApi.create(finalPayload);
 
-      // 📢 Emit socket event khi đặt hàng thành công
       socketRef.current?.emit("order_created", {
         customer_id: user?.customer.customer_id,
         order_data: finalPayload,

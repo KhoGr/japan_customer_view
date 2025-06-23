@@ -46,7 +46,7 @@ export const registerUser = createAsyncThunk(
   async (userData: RegisterLocalRequest, { rejectWithValue }) => {
     try {
       const response = await userApi.register(userData);
-      console.log('📝 registerUser response:', response.data);
+      console.log(' registerUser response:', response.data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -69,8 +69,8 @@ export const loginUser = createAsyncThunk(
       const meRes = await userApi.getMe();
       const rawUser = meRes.data.user;
 
-      console.log('🔐 [loginUser] token:', token);
-      console.log('🔐 [loginUser] rawUser:', rawUser);
+      console.log(' [loginUser] token:', token);
+      console.log(' [loginUser] rawUser:', rawUser);
 
       const user: UserProfile = { ...rawUser };
 
@@ -90,7 +90,7 @@ export const getMe = createAsyncThunk(
       const response = await userApi.getMe();
       const rawUser = response.data.user;
 
-      console.log('🙋‍♂️ [getMe] rawUser:', rawUser);
+      console.log(' [getMe] rawUser:', rawUser);
 
       const user: UserProfile = { ...rawUser };
 

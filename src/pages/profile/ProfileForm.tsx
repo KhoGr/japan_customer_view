@@ -52,7 +52,7 @@ const UserProfile: React.FC = () => {
       <div
         style={{
           background: 'linear-gradient(135deg, #f0f2f5, #d6e4ff)',
-          minHeight: 'calc(100vh - 64px - 70px)', // trừ chiều cao navbar + footer
+          minHeight: 'calc(100vh - 64px - 70px)', 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
